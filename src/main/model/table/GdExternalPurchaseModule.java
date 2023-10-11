@@ -6,6 +6,7 @@ import main.service.DatabaseService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,6 +22,8 @@ public class GdExternalPurchaseModule extends JPanel {
     private JButton createButton;
     private JButton editButton;
     private JButton deleteButton;
+    private JButton refreshButton;
+
     private int currentPage = 1;
     private int rowsPerPage = 10; // 每页显示的行数
     public GdExternalPurchaseModule() throws SQLException {
@@ -39,6 +42,7 @@ public class GdExternalPurchaseModule extends JPanel {
 //        tableModel.addColumn("发货时间");
 //        tableModel.addColumn("是否到达广西");
 //        tableModel.addColumn("到达时间");
+        tableModel.addColumn("id");
         tableModel.setColumnIdentifiers(new String[]{
                 "日期", "柜号", "净重", "集装箱公司/货名", "地址", "货主", "价格", "金额", "公司净重",
                 "扣杂", "质量扣款", "结算数量", "公司金额", "进厂日期", "预付标记", "已结月份标记", "集装箱", "备注"
@@ -87,7 +91,19 @@ public class GdExternalPurchaseModule extends JPanel {
                             "确认要删除选中行吗？", "确认删除", JOptionPane.YES_NO_OPTION);
                     if (response == JOptionPane.YES_OPTION) {
                         // 用户确认删除，执行删除操作
-                        tableModel.removeRow(selectedRow);
+                        Vector<String> rowData = (Vector<String>) tableModel.getDataVector().elementAt(selectedRow);
+                        String id = rowData.get(0);
+                        Boolean flag = deleteData(Integer.valueOf(id));
+                        if (flag) {
+                            tableModel.removeRow(selectedRow);
+                            try {
+                                loadExternalPurchaseDataFromDatabase();
+                            } catch (SQLException ex) {
+                                JOptionPane.showMessageDialog(GdExternalPurchaseModule.this, "删除失败", "警告", JOptionPane.WARNING_MESSAGE);
+                            }
+                        } else {
+                            JOptionPane.showMessageDialog(GdExternalPurchaseModule.this, "删除失败", "警告", JOptionPane.WARNING_MESSAGE);
+                        }
                     }
                 } else {
                     JOptionPane.showMessageDialog(GdExternalPurchaseModule.this, "请选择要删除的行", "警告", JOptionPane.WARNING_MESSAGE);
@@ -95,17 +111,31 @@ public class GdExternalPurchaseModule extends JPanel {
             }
         });
 
-
+        // 创建刷新按钮
+        refreshButton = new JButton("刷新");
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    loadExternalPurchaseDataFromDatabase();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
         // 创建按钮面板
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(createButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
-
+        buttonPanel.add(refreshButton);
         // 将表格和按钮面板添加到模块面板
         add(buttonPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         loadExternalPurchaseDataFromDatabase();
+        // 隐藏id列
+        TableColumn column = table.getColumnModel().getColumn(0);
+        table.getColumnModel().removeColumn(column);
     }
 
     // 添加数据到表格
@@ -132,6 +162,11 @@ public class GdExternalPurchaseModule extends JPanel {
             }
         }
     }
+
+    /**
+     * 查询数据库
+     * @throws SQLException
+     */
     public void loadExternalPurchaseDataFromDatabase() throws SQLException {
         // 计算当前页的偏移量
         int offset = (currentPage - 1) * rowsPerPage;
@@ -141,7 +176,7 @@ public class GdExternalPurchaseModule extends JPanel {
 
         try {
             // 构建查询语句，使用LIMIT和OFFSET来分页
-            String query = "SELECT * FROM sys_outer_puchase LIMIT ? OFFSET ?";
+            String query = "SELECT * FROM sys_outer_puchase where is_delete = 0 LIMIT ? OFFSET ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, rowsPerPage);
             preparedStatement.setInt(2, offset);
@@ -154,10 +189,58 @@ public class GdExternalPurchaseModule extends JPanel {
             while (resultSet.next()) {
                 Vector<String> rowData = new Vector<>();
                 // 从结果集中获取数据，并添加到rowData中
-                rowData.add(resultSet.getString("date"));
-                rowData.add(resultSet.getString("container_number"));
+                //id
+                rowData.add(resultSet.getString("id"));
+                //柜号
+                rowData.add(resultSet.getString("box_no"));
+                //净重
+                rowData.add(resultSet.getString("weight"));
+                //集装箱公司/货名
+                rowData.add(resultSet.getString("box_name"));
+                //地址
+                rowData.add(resultSet.getString("address"));
+                //货主
+                rowData.add(resultSet.getString("owner"));
+                //价格
+                rowData.add(resultSet.getString("price"));
+                //金额
+                rowData.add(resultSet.getString("amount"));
+                //公司净重
+                rowData.add(resultSet.getString("company_weight"));
+
+                //扣杂
+                rowData.add(resultSet.getString("deduct"));
+                //质量扣款
+                rowData.add(resultSet.getString("amount_deduct"));
+                //结算数量
+                rowData.add(resultSet.getString("sum"));
+                //公司金额
+                rowData.add(resultSet.getString("company_amount"));
+                //进厂日期
+                rowData.add(resultSet.getString("into_date"));
+                //预付标记
+                rowData.add(resultSet.getString("pre_mark"));
+                //已结月份标记
+                rowData.add(resultSet.getString("month"));
+                //集装箱
+                rowData.add(resultSet.getString("box"));
+                //备注
+                rowData.add(resultSet.getString("remark"));
+
+                rowData.add(resultSet.getString("order_date"));
                 // 添加其他列的数据...
-                rowData.add(resultSet.getString("comment"));
+
+
+                rowData.add(resultSet.getString("pre_price"));
+                rowData.add(resultSet.getString("contact_no"));
+
+
+                rowData.add(resultSet.getString("method"));
+                rowData.add(resultSet.getString("status"));
+                rowData.add(resultSet.getString("money"));
+                rowData.add(resultSet.getString("delivery_status"));
+                rowData.add(resultSet.getString("actual_weight"));
+                rowData.add(resultSet.getString("order_weight"));
 
                 // 将rowData添加到表格模型中
                 tableModel.addRow(rowData);
@@ -177,6 +260,26 @@ public class GdExternalPurchaseModule extends JPanel {
         }
     }
 
+    /**
+     * 数据库删除
+     */
+    public Boolean deleteData(Integer id) {
+        try {
+            // 更新表格数据
+
+            Connection connection = DatabaseService.getConnection();
+            PreparedStatement preparedStatement = null;
+
+            // 构建查询语句，使用LIMIT和OFFSET来分页
+            String query = "update sys_outer_puchase set is_delete = 1 where id = ?";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, id);
+            preparedStatement.executeUpdate();
+            return true;
+        } catch (Exception exception) {
+            return false;
+        }
+    }
     // 上一页按钮的事件处理
     public void previousPage() throws SQLException {
         if (currentPage > 1) {

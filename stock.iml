@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
+  <component name="CheckStyle-IDEA-Module" serialisationVersion="2">
+    <option name="activeLocationsIds" />
+  </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
@@ -11,7 +14,7 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="jar://$USER_HOME$/Desktop/commons-dbcp2-2.10.0.jar!/" />
+          <root url="jar://$USER_HOME$/Desktop/commons-dbcp2-2.9.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -21,6 +24,24 @@
       <library>
         <CLASSES>
           <root url="jar://$USER_HOME$/Desktop/mysql-connector-java-8.0.28.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Desktop/commons-pool2-2.9.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Desktop/commons-logging-1.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

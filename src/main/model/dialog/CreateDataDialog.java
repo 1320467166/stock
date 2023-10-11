@@ -1,11 +1,16 @@
 package main.model.dialog;
 
 import main.model.table.GdExternalPurchaseModule;
+import main.service.DatabaseService;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.Timestamp;
 
 public class CreateDataDialog extends JDialog {
     private JTextField dateField;
@@ -83,10 +88,12 @@ public class CreateDataDialog extends JDialog {
                         containerField.getText(),
                         commentField.getText()
                 };
-
-                // 将新数据添加到表格
-                gdExternalPurchaseModule.addData(rowData);
-
+                if (addData(rowData)) {
+                    // 将新数据添加到表格
+                    gdExternalPurchaseModule.addData(rowData);
+                } else {
+                    JOptionPane.showMessageDialog(gdExternalPurchaseModule, "添加失败", "警告", JOptionPane.WARNING_MESSAGE);
+                }
                 // 关闭对话框
                 dispose();
             }
@@ -143,5 +150,52 @@ public class CreateDataDialog extends JDialog {
 
     public void setGdExternalPurchaseModule(GdExternalPurchaseModule gdExternalPurchaseModule) {
         this.gdExternalPurchaseModule = gdExternalPurchaseModule;
+    }
+
+    public Boolean addData(String[] rowData) {
+        try {
+            // 更新表格数据
+
+            Connection connection = DatabaseService.getConnection();
+            PreparedStatement preparedStatement = null;
+
+            // 构建查询语句，使用LIMIT和OFFSET来分页
+            String query = "INSERT INTO sys_outer_puchase (order_date, box_no, address, pre_price, contact_no, owner, box_name, `method`, status," +
+                    " money, delivery_status, actual_weight, order_weight, weight, amount, price, company_weight, amount_deduct, deduct," +
+                    " sum, company_amount, into_date, pre_mark, `month`, box, remark) " +
+                    "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?);";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setTimestamp(1, Timestamp.valueOf(rowData[0]));
+            preparedStatement.setString(2, rowData[1]);
+            preparedStatement.setString(3, rowData[2]);
+            preparedStatement.setString(4, rowData[3]);
+            preparedStatement.setString(5, rowData[4]);
+            preparedStatement.setString(6, rowData[5]);
+            preparedStatement.setString(7, rowData[6]);
+            preparedStatement.setString(8, rowData[7]);
+            preparedStatement.setString(9, rowData[8]);
+            preparedStatement.setString(10, rowData[9]);
+            preparedStatement.setString(11, rowData[10]);
+            preparedStatement.setString(12, rowData[11]);
+            preparedStatement.setString(13, rowData[12]);
+            preparedStatement.setString(14, rowData[13]);
+            preparedStatement.setString(15, rowData[14]);
+            preparedStatement.setString(16, rowData[15]);
+            preparedStatement.setString(17, rowData[16]);
+            preparedStatement.setString(18, rowData[17]);
+//            preparedStatement.setString(19, rowData[18]);
+//            preparedStatement.setString(20, rowData[19]);
+//            preparedStatement.setString(21, rowData[20]);
+//            preparedStatement.setString(22, rowData[21]);
+//            preparedStatement.setString(23, rowData[22]);
+//            preparedStatement.setString(24, rowData[23]);
+//            preparedStatement.setString(25, rowData[24]);
+//            preparedStatement.setString(26, rowData[25]);
+            preparedStatement.execute();
+            return true;
+        } catch (Exception exception) {
+            return false;
+        }
+
     }
 }

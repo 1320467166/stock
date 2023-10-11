@@ -1,11 +1,15 @@
 package main.model.dialog;
 
 import main.model.table.GdExternalPurchaseModule;
+import main.service.DatabaseService;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Vector;
 
 public class EditDataDialog extends JDialog {
@@ -85,9 +89,23 @@ public class EditDataDialog extends JDialog {
                 rowData.set(16, containerField.getText());
                 rowData.set(17, commentField.getText());
 
+                //更新数据库
+                try {
                 // 更新表格数据
                 gdExternalPurchaseModule.updateData(rowData);
+                Connection connection = DatabaseService.getConnection();
+                PreparedStatement preparedStatement = null;
+                ResultSet resultSet = null;
 
+
+                    // 构建查询语句，使用LIMIT和OFFSET来分页
+                    String query = "update sys_outer_puchase set  where id = ?";
+//                    preparedStatement.setInt(1, rowsPerPage);
+                    preparedStatement = connection.prepareStatement(query);
+                    resultSet = preparedStatement.executeQuery();
+                } catch (Exception exception) {
+
+                }
                 // 关闭对话框
                 dispose();
             }
